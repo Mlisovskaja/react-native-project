@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,9 +12,14 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
-import { useDispatch } from "react-redux";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+
+//import { useDispatch } from "react-redux";
 
 // import { authSignInUser } from "../redux/auth/authOperations";
+
+SplashScreen.preventAutoHideAsync();
 
 const initialState = {
   login: "",
@@ -26,8 +31,22 @@ export default LoginScreen = ({ navigation }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [focusedEmail, setFocusedEmail] = useState(false);
   const [focusedPassword, setFocusedPassword] = useState(false);
+  const [isSecureEntry, setIsSecureEntry] = useState(true);
+  const [fontsLoaded] = useFonts({
+    "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),
+  });
 
-  const dispatch = useDispatch();
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  //const dispatch = useDispatch();
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -44,10 +63,10 @@ export default LoginScreen = ({ navigation }) => {
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onLayoutRootView}>
         <ImageBackground
           style={styles.imageBackground}
-          source={require("../assets/background.jpg")}
+          source={require("../images/registration/bg_photo.jpg")}
         >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : ""}
@@ -91,13 +110,22 @@ export default LoginScreen = ({ navigation }) => {
                     setIsShowKeyboard(true);
                     setFocusedPassword(true);
                   }}
-                  onBlur={() => setFocusedPassword(false)}
-                  secureTextEntry={true}
+                  onBlur={() => setFocusedPassword("false")}
+                  secureTextEntry={isSecureEntry}
                   onChangeText={(value) =>
                     setState((prevState) => ({ ...prevState, password: value }))
                   }
                 />
-                <Text style={styles.passwordText}>Показати</Text>
+                <TouchableOpacity
+                  style={styles.passwordTextWrapper}
+                  onPress={() => {
+                    setIsSecureEntry((prevState) => !prevState);
+                  }}
+                >
+                  <Text style={styles.passwordText}>
+                    {isSecureEntry ? "Показати" : "Приховати"}
+                  </Text>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -157,13 +185,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6F6F6",
     fontSize: 16,
     padding: 16,
+    fontFamily: "Roboto-Regular",
   },
-  passwordText: {
+  passwordTextWrapper: {
     position: "absolute",
     top: "30%",
     left: "75%",
+  },
+  passwordText: {
     color: "#1B4371",
     fontSize: 16,
+    fontFamily: "Roboto-Regular",
     lineHeight: 19,
   },
   btn: {
@@ -176,9 +208,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FF6C00",
   },
+  btnTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Roboto-Regular",
+  },
   signinText: {
     color: "#1B4371",
-    fontSize: 18,
+    fontSize: 16,
     textAlign: "center",
+    fontFamily: "Roboto-Regular",
   },
 });

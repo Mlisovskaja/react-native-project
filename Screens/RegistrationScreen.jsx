@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ImageBackground,
+  Image,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -11,6 +12,10 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from "react-native";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync();
 
 const initialState = {
   login: "",
@@ -23,6 +28,19 @@ export default Registrationscreen = ({ navigation }) => {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [focused, setFocused] = useState("");
   const [isSecureEntry, setIsSecureEntry] = useState(true);
+  const [fontsLoaded] = useFonts({
+    "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -36,29 +54,41 @@ export default Registrationscreen = ({ navigation }) => {
     setState(initialState);
   };
 
+  const handlePhotoAdd = () => {
+    setIsShowKeyboard(false);
+    Keyboard.dismiss();
+    console.log("photo");
+  };
+
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onLayoutRootView}>
         <ImageBackground
           source={require("../images/registration/bg_photo.jpg")}
           style={styles.imageBackground}
         >
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : ""}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View
               style={{
                 ...styles.formContainer,
-                paddingBottom: !isShowKeyboard ? 80 : 32,
+                paddingBottom: isShowKeyboard ? 0 : 78,
               }}
             >
               <View style={styles.profilePhoto}>
-                <Image />
-                <Image
-                  source={require("../images/icons/add.png")}
-                  style={styles.addIcon}
-                />
+                <TouchableOpacity
+                  onPress={() => {
+                    handlePhotoAdd();
+                  }}
+                >
+                  <Image
+                    source={require("../images/icons/add.png")}
+                    style={styles.addIcon}
+                  />
+                </TouchableOpacity>
               </View>
+
               <Text style={styles.title}>Реєстрація</Text>
 
               <View style={{ marginBottom: 16 }}>
@@ -99,7 +129,7 @@ export default Registrationscreen = ({ navigation }) => {
                   }
                 />
               </View>
-              <View style={{ position: "relative" }}>
+              <View style={{ marginBottom: 0 }}>
                 <TextInput
                   placeholder='Пароль'
                   value={state.password}
@@ -114,7 +144,10 @@ export default Registrationscreen = ({ navigation }) => {
                   onBlur={() => setFocused("false")}
                   secureTextEntry={isSecureEntry}
                   onChangeText={(value) =>
-                    setState((prevState) => ({ ...prevState, password: value }))
+                    setState((prevState) => ({
+                      ...prevState,
+                      password: value,
+                    }))
                   }
                 />
                 <TouchableOpacity
@@ -165,6 +198,8 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingTop: 92,
+    paddingLeft: 16,
+    paddingRight: 16,
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
@@ -182,7 +217,7 @@ const styles = StyleSheet.create({
   addIcon: {
     position: "absolute",
     left: "90%",
-    top: "65%",
+    bottom: -100,
     width: 25,
     height: 25,
   },
@@ -194,13 +229,13 @@ const styles = StyleSheet.create({
     marginBottom: 33,
   },
   input: {
-    marginHorizontal: 16,
     borderWidth: 1,
     borderColor: "#E8E8E8",
     borderRadius: 8,
     height: 50,
     color: "#212121",
     backgroundColor: "#F6F6F6",
+    fontFamily: "Roboto-Regular",
     fontSize: 16,
     padding: 16,
   },
@@ -212,6 +247,7 @@ const styles = StyleSheet.create({
   passwordText: {
     color: "#1B4371",
     fontSize: 16,
+    fontFamily: "Roboto-Regular",
     lineHeight: 19,
   },
   btn: {
@@ -227,10 +263,12 @@ const styles = StyleSheet.create({
   btnTitle: {
     color: "#FFFFFF",
     fontSize: 16,
+    fontFamily: "Roboto-Regular",
   },
   signinText: {
     color: "#1B4371",
-    fontSize: 18,
+    fontSize: 16,
+    fontFamily: "Roboto-Regular",
     textAlign: "center",
   },
 });
